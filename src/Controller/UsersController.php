@@ -175,7 +175,7 @@ class UsersController extends AppController  {
             $user->password = $hasher->hash($mypass);
             $user->token = $mytoken;
 
-            if($userTable->save($user))  {
+            if($userTable->save($user))  { 
                 $res['status'] = 1;
                 $res['msg'] = 'User register successful, your confirmation email has been sent.';
 
