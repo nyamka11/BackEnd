@@ -68,8 +68,8 @@ Router::scope('/', function (RouteBuilder $routes) {
     /*
      * ...and connect the rest of 'Pages' controller's URLs.
      */
-    $routes->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
 
+    $routes->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
     $routes->connect('/users', ['controller' => 'Users', 'action' => 'index']);
     $routes->connect('/users/register', ['controller' => 'Users', 'action' => 'register']);
     $routes->connect('/users/verification', ['controller' => 'Users', 'action' => 'verification']);
@@ -77,6 +77,7 @@ Router::scope('/', function (RouteBuilder $routes) {
     $routes->connect('/users/logout', ['controller' => 'Users', 'action' => 'logout']);
     $routes->connect('/users/forgotpassword', ['controller' => 'Users', 'action' => 'forgotpassword']);
     $routes->connect('/users/resetpassword', ['controller' => 'Users', 'action' => 'resetpassword']);
+    // $routes->connect('/users/edit/*', ['controller' => 'Users', 'action' => 'edit']);
 
     // ログイン
     // Router::connect('/users/login', array (

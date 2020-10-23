@@ -26,9 +26,24 @@ class UsersController extends AppController  {
      * @return \Cake\Network\Response|null
      */
     public function index()  {
-        $users = $this->paginate($this->Users);
-        $this->set(compact('users'));
-        $this->set('_serialize', ['users']);
+        // $data = $this->paginate($this->Users);
+        // $this->set(compact('data'));
+        // $this->set('_serialize', ['data']);
+
+        // $res = array();
+        // $result = $this->Users->find('all'); 
+        // $res['data'] = $result;
+        // $res['total'] = 5;
+
+        // $this->set(compact('res'));
+        // $this->set('_serialize', ['res']);
+
+        $users = $this->Users->find('all');
+        $this->set([
+            'data'=>$users,
+            'status' => 'ok',
+            '_serialize' => ['users']
+        ]);
     }
 
     public function forgotpassword()  {
@@ -101,10 +116,12 @@ class UsersController extends AppController  {
                 $this->Auth->setUser($user);
                 $res['status'] = 1;
                 $res['msg'] = 'login successful';
+                $res['data'] = $user;
             }
             else  {
                 $res['status'] = 0;
                 $res['msg'] = 'Your username or password is incorrect';
+                $res['data'] = NULL;
             }
         }
         $this->set(compact('res'));
@@ -161,7 +178,8 @@ class UsersController extends AppController  {
                 exit();
             }
 
-            //----- user -----
+            //** ----------------- User start---------- */
+
             $userTable = tableRegistry::get('Users');
             $user = $userTable -> newEntity();
 
@@ -170,10 +188,12 @@ class UsersController extends AppController  {
             $mytoken = Security::hash(Security::randomBytes(32));
 
             $user->email = $myemail;
+            $user->name = $guarantorname;
             $user->username = $myemail;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
             $user->company_id = $comId;
             $user->password = $hasher->hash($mypass);
             $user->token = $mytoken;
+            $user->phone = $cellphone;
 
             if($userTable->save($user))  { 
                 $res['status'] = 1;
@@ -206,6 +226,8 @@ class UsersController extends AppController  {
                 $res['status'] = 0;
                 $res['msg'] = 'User register failed, please try again.';
             }
+            
+            //** ----------------- User end---------- */
         }
 
         $this->set(compact('res'));
@@ -220,21 +242,17 @@ class UsersController extends AppController  {
         $this->redirect('http://localhost:3000?verified=1');
     }
 
-    /**
-     * View method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Network\Response|null
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
 
     public function view($id = null)  {
         $user = $this->Users->get($id, [
             'contain' => []
         ]);
 
-        $this->set('user', $user);
-        $this->set('_serialize', ['user']);
+        $this->set([
+            'data'=>$user,
+            'status' => 1,
+            '_serialize' => ['user']
+        ]);
     }
 
     /**
@@ -243,21 +261,31 @@ class UsersController extends AppController  {
      * @return \Cake\Network\Response|void Redirects on successful add, renders view otherwise.
      */
     public function add()  {
-		$res = array();
-        $user = $this->Users->newEntity();
-        if ($this->request->is('post')) {
-            $user = $this->Users->patchEntity($user, $this->request->data);
-            if ($this->Users->save($user)) {
-				// Remove flash and redirections
-				$res['status'] = 1;
-                $res['msg'] = 'The user has been saved.';
-            } else {
-				$res['status'] = 0;
-                $res['msg'] = 'The user could not be saved. Please, try again.';
-            }
+        $username = $this -> request -> getData(['username']);
+        $email = $this -> request -> getData(['email']);
+        $name = $this -> request -> getData(['name']);
+        $phone = $this -> request -> getData(['phone']);
+
+        $userTable = tableRegistry::get('Users');
+        $user = $userTable -> newEntity();
+
+        $user->email = $email;
+        $user->name = $name;
+        $user->username = $username;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
+        $user->phone = $phone;
+
+        if($userTable->save($user))  {
+            $message = 'Saved';
+        } 
+        else  {
+            $message = 'Error';
         }
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
+
+        $this->set([
+            'message' => $message,
+            'data' => $user,
+            '_serialize' => ['message', 'data']
+        ]);
     }
 
     /**
@@ -268,25 +296,24 @@ class UsersController extends AppController  {
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
     public function edit($id = null)  {
-        // $this->getEventManager()->off($this->Csrf);
-        $user = $this->Users->get($id, [
-            'contain' => []
-        ]);
+        $usersTable = TableRegistry::get('Users');
+        $user = $usersTable->get($id);
+        $user->name = $this->request->getData(["name"]);
+        $user->username = $this->request->getData(["username"]);
+        $user->phone = $this->request->getData(["phone"]);
+        $user->email = $this->request->getData(["email"]);
 
-		$res = array();
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $user = $this->Users->patchEntity($user, $this->request->data);
-            if ($this->Users->save($user)) {
-				$res['status'] = 1;
-				$res['msg'] = 'User updated successfully';
-            } 
-            else {
-				$res['status'] = 0;
-                $res['msg'] = 'The user could not be saved. Please, try again.';
-            }
+        if ($this->Users->save($user))  {
+            $message = 'Edited';
         }
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
+        else  {
+            $message = 'Error';
+        }
+
+        $this->set([
+            'messagedd' => $message,
+            '_serialize' => ['message']
+        ]);
     }
 
     /**
@@ -297,19 +324,16 @@ class UsersController extends AppController  {
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
     public function delete($id = null)  {
-		$res = array();
-        $this->request->allowMethod(['post', 'delete']);
+        $this->request->allowMethod(['delete']);
         $user = $this->Users->get($id);
-        if ($this->Users->delete($user)) {
-			$res['status'] = 1;
-            $res['msg'] = 'The user has been deleted.';
-        } 
-        else  {
-			$res['status'] = 0;
-            $res['msg'] = 'The user could not be deleted. Please, try again.';
+        $message = 'The user has been deleted';
+        if (!$this->Users->delete($user))  {
+            $message = 'The user could not be deleted. Please, try again';
         }
 
-		$this->set(compact('res'));
-        $this->set('_serialize', ['res']);
+        $this->set([
+            'message' => $message,
+            '_serialize' => ['message']
+        ]);
     }
 }
