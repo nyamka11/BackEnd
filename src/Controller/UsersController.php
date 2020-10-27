@@ -26,22 +26,10 @@ class UsersController extends AppController  {
      * @return \Cake\Network\Response|null
      */
     public function index()  {
-        // $data = $this->paginate($this->Users);
-        // $this->set(compact('data'));
-        // $this->set('_serialize', ['data']);
-
-        // $res = array();
-        // $result = $this->Users->find('all'); 
-        // $res['data'] = $result;
-        // $res['total'] = 5;
-
-        // $this->set(compact('res'));
-        // $this->set('_serialize', ['res']);
-
         $users = $this->Users->find('all');
         $this->set([
             'data'=>$users,
-            'status' => 'ok',
+            'status' => 1,
             '_serialize' => ['users']
         ]);
     }
@@ -139,101 +127,6 @@ class UsersController extends AppController  {
         $this->set('_serialize', ['res']);
     }
 
-    public function register()  {
-        $res = array();
-        if($this->request->is('post'))  {
-            $companyname = $this -> request -> getData(['companyname']);
-            $guarantorname = $this -> request -> getData(['guarantorname']);
-            $postcode = $this -> request -> getData(['postcode']);
-            $address1 = $this -> request -> getData(['address1']);
-            $address2 = $this -> request -> getData(['address2']);
-            $address3 = $this -> request -> getData(['address3']);
-            $guarantorphonenumber = $this -> request -> getData(['guarantorphonenumber']);
-            $cellphone = $this -> request -> getData(['cellphone']);
-            $myemail = trim($this -> request -> getData(['email']));
-
-            $companyTable = tableRegistry::get('company');
-            $company = $companyTable -> newEntity();
-            $company->companyname = $companyname;
-            $company->guarantorname = $guarantorname;
-            $company->postcode = $postcode;
-            $company->address1 = $address1;
-            $company->address2 = $address2;
-            $company->address3 = $address3;
-            $company->guarantorphonenumber = $guarantorphonenumber;
-            $company->cellphone = $cellphone;
-            $company->email = $myemail;
-
-            $result = $companyTable->save($company);
-            $comId = $result->id;
-
-            if($comId > 0)  {  //compnay register successful
-
-            }
-            else  {
-                $res['status'] = 0;
-                $res['msg'] = 'Company register failed, please try again.';
-                $this->set(compact('res'));
-                $this->set('_serialize', ['res']);
-                exit();
-            }
-
-            //** ----------------- User start---------- */
-
-            $userTable = tableRegistry::get('Users');
-            $user = $userTable -> newEntity();
-
-            $hasher = new DefaultPasswordHasher();
-            $mypass = '1200'; //password hiine
-            $mytoken = Security::hash(Security::randomBytes(32));
-
-            $user->email = $myemail;
-            $user->name = $guarantorname;
-            $user->username = $myemail;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
-            $user->company_id = $comId;
-            $user->password = $hasher->hash($mypass);
-            $user->token = $mytoken;
-            $user->phone = $cellphone;
-
-            if($userTable->save($user))  { 
-                $res['status'] = 1;
-                $res['msg'] = 'User register successful, your confirmation email has been sent.';
-
-                Email::configTransport('mailtrap', [
-                    'host' => 'smtp.mailtrap.io',
-                    'port' => 2525,
-                    'username' => '507e5493f6ad0c',
-                    'password' => '855f891440d4c8',
-                    'className' => 'Smtp'
-                ]);
-
-                $email = new Email('default');
-                $email -> transport('mailtrap');
-                $email -> emailFormat('html');
-                $email -> from('unyamka@gmail.com', 'U.N');
-                $email -> subject('Please confirm your email to activation your account');
-                $email -> to($myemail);
-                $email -> send(
-                    'comId:'.$comId.' ------ '.$guarantorname.'<br/>Please confirm your email link below<br/>
-                    <a href="http://localhost/backEnd/users/verification/'.$mytoken.'">Verification Email</a><br/>
-                    Thank you for joining us'
-                );
-            }
-            else  {
-                $company = $companyTable->get($comId);
-                $companyTable->delete($company);
-
-                $res['status'] = 0;
-                $res['msg'] = 'User register failed, please try again.';
-            }
-            
-            //** ----------------- User end---------- */
-        }
-
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
-    }
-
     public function verification($token)  {
         $userTable = tableRegistry::get('Users');
         $verify = $userTable -> find('all')->where(['token'=>$token])->first();
@@ -261,14 +154,16 @@ class UsersController extends AppController  {
      * @return \Cake\Network\Response|void Redirects on successful add, renders view otherwise.
      */
     public function add()  {
-        $username = $this -> request -> getData(['username']);
-        $email = $this -> request -> getData(['email']);
-        $name = $this -> request -> getData(['name']);
-        $phone = $this -> request -> getData(['phone']);
+        $comId = $this->request->getData(['comId']);
+        $username = $this->request->getData(['username']);
+        $email = $this->request->getData(['email']);
+        $name = $this->request->getData(['name']);
+        $phone = $this->request->getData(['phone']);
 
         $userTable = tableRegistry::get('Users');
         $user = $userTable -> newEntity();
 
+        $user->company_id = $comId;
         $user->email = $email;
         $user->name = $name;
         $user->username = $username;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
@@ -302,6 +197,7 @@ class UsersController extends AppController  {
         $user->username = $this->request->getData(["username"]);
         $user->phone = $this->request->getData(["phone"]);
         $user->email = $this->request->getData(["email"]);
+        $user->modified = date('Y-m-d H:i:s');
 
         if ($this->Users->save($user))  {
             $message = 'Edited';
