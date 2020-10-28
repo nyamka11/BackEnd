@@ -18,7 +18,7 @@ use Cake\Network\Exception\UnauthorizedException;
 
 
 
-class UsersController extends AppController  {
+class UsersController extends AppController  {  
 
     /**
      * Index method
@@ -96,46 +96,6 @@ class UsersController extends AppController  {
         $this->set('_serialize', ['res']);
     }
 
-    public function login()  {
-        $res = array();
-        if($this->request->is('post'))  {
-            $user = $this->Auth->identify();
-            if($user)  {
-                $this->Auth->setUser($user);
-                $res['status'] = 1;
-                $res['msg'] = 'login successful';
-                $res['data'] = $user;
-            }
-            else  {
-                $res['status'] = 0;
-                $res['msg'] = 'Your username or password is incorrect';
-                $res['data'] = NULL;
-            }
-        }
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
-    }
-
-    public function logout()  {
-        $res = array();
-        if($this->Auth->logout())  {
-            $res['status'] = 1;
-            $res['msg'] = 'OK';
-        }
-
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
-    }
-
-    public function verification($token)  {
-        $userTable = tableRegistry::get('Users');
-        $verify = $userTable -> find('all')->where(['token'=>$token])->first();
-        $verify->verified = '1';
-        $userTable->save($verify);
-        $this->redirect('http://localhost:3000?verified=1');
-    }
-
-
     public function view($id = null)  {
         $user = $this->Users->get($id, [
             'contain' => []
@@ -148,11 +108,6 @@ class UsersController extends AppController  {
         ]);
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Network\Response|void Redirects on successful add, renders view otherwise.
-     */
     public function add()  {
         $comId = $this->request->getData(['comId']);
         $username = $this->request->getData(['username']);
@@ -183,13 +138,6 @@ class UsersController extends AppController  {
         ]);
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Network\Response|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
     public function edit($id = null)  {
         $usersTable = TableRegistry::get('Users');
         $user = $usersTable->get($id);
@@ -212,13 +160,6 @@ class UsersController extends AppController  {
         ]);
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Network\Response|null Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)  {
         $this->request->allowMethod(['delete']);
         $user = $this->Users->get($id);

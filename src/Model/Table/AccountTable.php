@@ -45,7 +45,9 @@ class AccountTable extends Table
             'foreignKey' => 'user_id',
             'joinType' => 'INNER',
         ]);
+
         $this->belongsTo('Coms', [
+            'className' => 'Company',
             'foreignKey' => 'com_id',
             'joinType' => 'INNER',
         ]);
@@ -64,9 +66,10 @@ class AccountTable extends Table
             ->allowEmptyString('id', null, 'create');
 
         $validator
-            ->integer('user_name')
-            ->requirePresence('user_name', 'create')
-            ->notEmptyString('user_name');
+            ->scalar('username')
+            ->maxLength('username', 255)
+            ->requirePresence('username', 'create')
+            ->notEmptyString('username');
 
         $validator
             ->scalar('password')
@@ -103,6 +106,7 @@ class AccountTable extends Table
     {
         $rules->add($rules->existsIn(['user_id'], 'Users'));
         $rules->add($rules->existsIn(['com_id'], 'Coms'));
+        $rules->add($rules->isUnique(['username']));
 
         return $rules;
     }

@@ -40,7 +40,7 @@
         </tr>
         <tr>
             <th scope="row"><?= __('User Name') ?></th>
-            <td><?= $this->Number->format($account->user_name) ?></td>
+            <td><?= $this->Number->format($account->username) ?></td>
         </tr>
         <tr>
             <th scope="row"><?= __('Verified') ?></th>

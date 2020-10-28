@@ -47,11 +47,15 @@ class AppController extends Controller
         $this->loadComponent('Flash');
         
         $this->loadComponent('Auth',  [
+            'loginAction' => [
+                'controller' => 'Account',
+                'action' => 'login'
+            ],
             'authenticate' => [
                 'Form'=> [
                     'fields' => ['username'=>'username', 'password'=>'password'],
                     'scope' => ['verified'=>'1'],
-                    'userModel' => 'Users'
+                    'userModel' => 'Account'
                 ]
             ],
             'storage'=>'Session'
@@ -65,12 +69,12 @@ class AppController extends Controller
         //$this->loadComponent('Security');
     }
 
-
     public function beforeFilter(event $event) {
         $this->Auth->allow([
-            'verification', 
+            'verification',
             'register', 
             'logout', 
+            'login', 
             'forgotpassword',
             'resetpassword',
             'index',
@@ -93,10 +97,6 @@ class AppController extends Controller
         header('Content-Range: users 0-24/319');
         header('X-Total-Count: 30');
         header('Access-Control-Expose-Headers: Content-Range');
-
-        // if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-        //     exit(0);
-        // }
     }
 
     public function beforeRender(Event $event)  {

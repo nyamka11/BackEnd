@@ -86,30 +86,45 @@ class CompanyController extends AppController
             $this->set(compact('res'));
             return;
         }
-
         $comId = (int) $company['id'];  //登録した会社IDです。
 
-        //** ----------------- User start---------- */
-
+        //** ----------------- User start------------------------ */
         $userTable = tableRegistry::get('Users');
         $user = $userTable -> newEntity();
+        $user->email = $myemail;
+        $user->name = $guarantorname;
+        $user->company_id = $comId;
+        $user->phone = $cellphone;
+
+        if(!$userTable->save($user))  {
+            $company = $companyTable->get($comId);
+            $companyTable->delete($company);
+
+            $res['status'] = 0;
+            $res['msg'] = 'User register failed, please try again.';
+            $this->set(compact('res'));
+            return;
+        }
+
+        $userId = (int) $user['id'];
+
+        // //** ----------------- Account start------------------------ */
+        $accountTable = tableRegistry::get('account');
+        $account = $accountTable -> newEntity();
 
         $hasher = new DefaultPasswordHasher();
         $mypass = '1200'; //password hiine
         $mytoken = Security::hash(Security::randomBytes(32));
 
-        $user->email = $myemail;
-        $user->name = $guarantorname;
-        $user->username = $myemail;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
-        $user->company_id = $comId;
-        $user->password = $hasher->hash($mypass);
-        $user->token = $mytoken;
-        $user->phone = $cellphone;
+        $account->user_id = $userId;
+        $account->com_id = $comId;
+        $account->username = $myemail;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
+        $account->password = $hasher->hash($mypass);
+        $account->token = $mytoken;
+        $account->verified = 0;
+        $account->created = date('Y-m-d H:i:s');
 
-        if($userTable->save($user))  { 
-            $res['status'] = 1;
-            $res['msg'] = 'User register successful, your confirmation email has been sent.';
-
+        if($accountTable->save($account))  { 
             Email::configTransport('mailtrap', [
                 'host' => 'smtp.mailtrap.io',
                 'port' => 2525,
@@ -126,18 +141,21 @@ class CompanyController extends AppController
             $email -> to($myemail);
             $email -> send(
                 'comId:'.$comId.' ------ '.$guarantorname.'<br/>Please confirm your email link below<br/>
-                <a href="http://localhost/backEnd/users/verification/'.$mytoken.'">Verification Email</a><br/>
+                <a href="http://localhost/backEnd/account/verification/'.$mytoken.'">Verification Email</a><br/>
                 Thank you for joining us'
             );
+
+            $res['status'] = 1;
+            $res['msg'] = 'User register successful, your confirmation email has been sent.';
         }
         else  {
             $company = $companyTable->get($comId);
             $companyTable->delete($company);
 
-            $res['status'] = 0;
-            $res['msg'] = 'User register failed, please try again.';
+            $user = $userTable->get($userId);
+            $userTable->delete($user);
         }
-        //** ----------------- User end---------- */
+        // ** ----------------- User account---------- */
         $this->set(compact('res'));
     }
 

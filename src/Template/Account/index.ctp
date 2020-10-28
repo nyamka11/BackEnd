@@ -20,7 +20,7 @@
                 <th scope="col"><?= $this->Paginator->sort('id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('user_id') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('com_id') ?></th>
-                <th scope="col"><?= $this->Paginator->sort('user_name') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('username') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('password') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('token') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('verified') ?></th>
@@ -35,7 +35,7 @@
                 <td><?= $this->Number->format($account->id) ?></td>
                 <td><?= $account->has('user') ? $this->Html->link($account->user->id, ['controller' => 'Users', 'action' => 'view', $account->user->id]) : '' ?></td>
                 <td><?= $this->Number->format($account->com_id) ?></td>
-                <td><?= $this->Number->format($account->user_name) ?></td>
+                <td><?= $this->Number->format($account->username) ?></td>
                 <td><?= h($account->password) ?></td>
                 <td><?= h($account->token) ?></td>
                 <td><?= $this->Number->format($account->verified) ?></td>

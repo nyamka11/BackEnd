@@ -25,7 +25,7 @@
         <?php
             echo $this->Form->control('user_id', ['options' => $users]);
             echo $this->Form->control('com_id');
-            echo $this->Form->control('user_name');
+            echo $this->Form->control('username');
             echo $this->Form->control('password');
             echo $this->Form->control('token');
             echo $this->Form->control('verified');

@@ -9,7 +9,7 @@ use Cake\ORM\Entity;
  * @property int $id
  * @property int $user_id
  * @property int $com_id
- * @property int $user_name
+ * @property string $username
  * @property string $password
  * @property string $token
  * @property int $verified
@@ -33,7 +33,7 @@ class Account extends Entity
     protected $_accessible = [
         'user_id' => true,
         'com_id' => true,
-        'user_name' => true,
+        'username' => true,
         'password' => true,
         'token' => true,
         'verified' => true,

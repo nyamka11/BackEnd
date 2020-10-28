@@ -71,23 +71,10 @@ Router::scope('/', function (RouteBuilder $routes) {
 
     $routes->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
     $routes->connect('/users', ['controller' => 'Users', 'action' => 'index']);
-    // $routes->connect('/users/register', ['controller' => 'Users', 'action' => 'register']);
-    $routes->connect('/users/verification', ['controller' => 'Users', 'action' => 'verification']);
-    $routes->connect('/users/login', ['controller' => 'Users', 'action' => 'login']);
+    $routes->connect('/account/verification', ['controller' => 'Account', 'action' => 'verification']);
     $routes->connect('/users/logout', ['controller' => 'Users', 'action' => 'logout']);
-    $routes->connect('/users/forgotpassword', ['controller' => 'Users', 'action' => 'forgotpassword']);
+    // $routes->connect('/users/forgotpassword', ['controller' => 'Users', 'action' => 'forgotpassword']);
     $routes->connect('/users/resetpassword', ['controller' => 'Users', 'action' => 'resetpassword']);
-    // $routes->connect('/account', ['controller' => 'Account', 'action' => 'index']);
-    // $routes->connect('/users/edit/*', ['controller' => 'Users', 'action' => 'edit']);
-
-    // ログイン
-    // Router::connect('/users/login', array (
-    //     'controller' => 'users',
-    //     'action' => 'login',
-    //     'method' => array (
-    //         'POST'
-    //     )
-    // ));
 
     /*
      * Connect catchall routes for all controllers.
