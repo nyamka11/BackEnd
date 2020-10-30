@@ -75,10 +75,9 @@ class AccountController extends AppController  {
             $mytoken = Security::hash(Security::randomBytes(25));
 
             $connection = ConnectionManager::get('default');
-            $results = $connection->execute('SELECT * FROM Users WHERE email = :email', ['email' => $myemail])
-            ->fetchAll('assoc');
+            $results = $connection->execute('SELECT * FROM Users WHERE email = :email', ['email' => $myemail])->fetchAll('assoc');
 
-            $userId =  (int) $results[0]['id'];
+            $userId = (int) $results[0]['id'];
             $result = $connection->update('Account', ['password' => '','token'=> $mytoken], ['user_id' => $userId]);
 
             if($result)  {

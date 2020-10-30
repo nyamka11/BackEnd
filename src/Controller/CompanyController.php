@@ -55,15 +55,14 @@ class CompanyController extends AppController
     public function add()  {  //Register
         $res = array();
         $jsonData = $this->request->input('json_decode');
-        $companyname = $jsonData->companyname;
-        $guarantorname = $jsonData->guarantorname;
-        $postcode = $jsonData->postcode;
+        $companyname = $jsonData->companyName;
+        $guarantorname = $jsonData->guarantorName;
+        $postcode = $jsonData->postCode;
         $address1 = $jsonData->address1;
         $address2 = $jsonData->address2;
         $address3 = $jsonData->address3;
-        $guarantorphonenumber = $jsonData->guarantorphonenumber;
-        $cellphone = $jsonData->cellphone;
-        $cellphone = $jsonData->cellphone;
+        $guarantorphonenumber = $jsonData->guarantorPhoneNumber;
+        $cellphone = $jsonData->cellPhone;
         $myemail = $jsonData->email;
 
         $companyTable = tableRegistry::get('company');

@@ -37,8 +37,7 @@ class AppController extends Controller
      *
      * @return void
      */
-    public function initialize()
-    {
+    public function initialize()  {
         parent::initialize();
 
         $this->loadComponent('RequestHandler', [
@@ -97,6 +96,10 @@ class AppController extends Controller
         header('Content-Range: users 0-24/319');
         header('X-Total-Count: 30');
         header('Access-Control-Expose-Headers: Content-Range');
+
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            exit(0);
+        }
     }
 
     public function beforeRender(Event $event)  {
@@ -106,4 +109,5 @@ class AppController extends Controller
         $this->response->type('application/json');
         $this->set('_serialize', true);
     }
+
 }

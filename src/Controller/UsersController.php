@@ -34,7 +34,6 @@ class UsersController extends AppController  {
 
     public function add()  {
         $comId = $this->request->getData(['comId']);
-        $username = $this->request->getData(['username']);
         $email = $this->request->getData(['email']);
         $name = $this->request->getData(['name']);
         $phone = $this->request->getData(['phone']);
@@ -45,7 +44,6 @@ class UsersController extends AppController  {
         $user->company_id = $comId;
         $user->email = $email;
         $user->name = $name;
-        $user->username = $username;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
         $user->phone = $phone;
 
         if($userTable->save($user))  {
