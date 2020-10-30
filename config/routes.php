@@ -71,11 +71,8 @@ Router::scope('/', function (RouteBuilder $routes) {
 
     $routes->connect('/pages/*', ['controller' => 'Pages', 'action' => 'display']);
     $routes->connect('/users', ['controller' => 'Users', 'action' => 'index']);
-    $routes->connect('/account/verification', ['controller' => 'Account', 'action' => 'verification']);
     $routes->connect('/users/logout', ['controller' => 'Users', 'action' => 'logout']);
-    // $routes->connect('/users/forgotpassword', ['controller' => 'Users', 'action' => 'forgotpassword']);
-    $routes->connect('/users/resetpassword', ['controller' => 'Users', 'action' => 'resetpassword']);
-
+    
     /*
      * Connect catchall routes for all controllers.
      *

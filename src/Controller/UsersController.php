@@ -10,21 +10,7 @@ use Cake\ORM\TableRegistry;
 use Illuminate\Http\Request;
 use Cake\Network\Exception\UnauthorizedException;
 
-/**
- * Users Controller
- *
- * @property \App\Model\Table\UsersTable $Users
- */
-
-
-
-class UsersController extends AppController  {  
-
-    /**
-     * Index method
-     *
-     * @return \Cake\Network\Response|null
-     */
+class UsersController extends AppController  {
     public function index()  {
         $users = $this->Users->find('all');
         $this->set([
@@ -32,68 +18,6 @@ class UsersController extends AppController  {
             'status' => 1,
             '_serialize' => ['users']
         ]);
-    }
-
-    public function forgotpassword()  {
-        $res = array();
-        if($this->request->getData('post'));
-        $myemail = $this->request->getData('email');
-        $mytoken = Security::hash(Security::randomBytes(25));
-
-        $userTable = TableRegistry::get('Users');
-        $user = $userTable->find('all')->where(['email'=>$myemail])->first();
-        $user->password = '';
-        $user->token = $mytoken;
-
-        if($userTable->save($user))  {
-            $res['status'] = 1;
-            $res['msg'] = 'Reset password link has been to your email('.$myemail.'), please open your indox';
-
-            Email::configTransport('mailtrap', [
-                'host' => 'smtp.mailtrap.io',
-                'port' => 2525,
-                'username' => '507e5493f6ad0c',
-                'password' => '855f891440d4c8',
-                'className' => 'Smtp'
-            ]);
-
-            $email = new Email('default');
-            $email -> transport('mailtrap');
-            $email -> emailFormat('html');
-            $email -> from('unyamka@gmail.com', 'U.N');
-            $email -> subject('Please confirm your email to activation your account');
-            $email -> to($myemail);
-            $email -> send(
-                'Hello '.$myemail.'<br/>Please click link below to reset your password<br/>
-                <a href="http://localhost:3000/resetpassword?mt='.$mytoken.'">Reset Password</a><br/>'
-            );
-        }
-        else {
-            $res['status'] = 0;
-            $res['msg'] = '('.$myemail.') ない';
-        }
-
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
-    }
-
-    public function resetpassword()  {
-        $res = array();
-        if($this->request->is('post'))  {
-            $hasher = new DefaultPasswordHasher();
-            $mypass = $hasher->hash($this->request->getData('password'));
-            $token = $this->request->getData('token');
-
-            $userTable = TableRegistry::get('Users');
-            $user = $userTable->find('all')->where(['token'=>$token])->first();
-            $user->password =$mypass;
-            if($userTable->save($user))  {
-                $res['status'] = 1;
-            }
-        }
-
-        $this->set(compact('res'));
-        $this->set('_serialize', ['res']);
     }
 
     public function view($id = null)  {

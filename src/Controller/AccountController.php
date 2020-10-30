@@ -2,21 +2,17 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\Datasource\ConnectionManager;
+use Cake\ORM\Query;
 
-/**
- * Account Controller
- *
- * @property \App\Model\Table\AccountTable $Account
- *
- * @method \App\Model\Entity\Account[]|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
- */
+use Cake\Mailer\Email;
+use Cake\Auth\DefaultPasswordHasher;
+use Cake\Utility\Security;
+use Cake\ORM\TableRegistry;
+use Illuminate\Http\Request;
+use Cake\Network\Exception\UnauthorizedException;
+
 class AccountController extends AppController  {
-    /**
-     * Index method
-     *
-     * @return \Cake\Http\Response|null
-     */
-
     public function index()  {
         $this->paginate = [
             'contain' => ['Users', 'Coms'],
@@ -73,77 +69,64 @@ class AccountController extends AppController  {
     }
 
     public function forgotpassword()  {
+        $res = array();
+        if($this->request->is('post'))  {
+            $myemail = $this->request->getData('email');
+            $mytoken = Security::hash(Security::randomBytes(25));
 
-        // $accountTable = $this->Account->find('all');
-        // $accountTable->select(['account.com_id','account.username','account.token']);
-        // $accountTable->select(['user.id','user.email','user.name','user.phone']);
-        // $accountTable->join([
-        //     'table' => 'users',
-        //     'alias' => 'user',
-        //     'type' => 'INNER',
-        //     'conditions' => 'user.id = account.user_id AND account.com_id=317',
-        // ]);
+            $connection = ConnectionManager::get('default');
+            $results = $connection->execute('SELECT * FROM Users WHERE email = :email', ['email' => $myemail])
+            ->fetchAll('assoc');
 
-        // $this->set(compact('accountTable'));
+            $userId =  (int) $results[0]['id'];
+            $result = $connection->update('Account', ['password' => '','token'=> $mytoken], ['user_id' => $userId]);
 
+            if($result)  {
+                $res['status'] = 1;
+                $res['msg'] = 'Reset password link has been to your email('.$myemail.'), please open your indox';
 
-        // return;
-        // $res = array();
-        // if($this->request->getData('post'))
-        $myemail = $this->request->getData('email');
-        // $mytoken = Security::hash(Security::randomBytes(25));
+                Email::configTransport('mailtrap', [
+                    'host' => 'smtp.mailtrap.io',
+                    'port' => 2525,
+                    'username' => '507e5493f6ad0c',
+                    'password' => '855f891440d4c8',
+                    'className' => 'Smtp'
+                ]);
 
-        // $accountTable = TableRegistry::get('Account');
-        // $account = $accountTable->find('all')->where(['email'=>$myemail])->first();
-        // $account->password = '';
-        // $account->token = $mytoken;
-
-        
-            $accountTable = $this->Account->find('all');
-            $accountTable->select(['account.com_id','account.username','account.token']);
-            $accountTable->select(['user.id','user.email','user.name','user.phone']);
-            $accountTable->join([
-                'table' => 'users',
-                'alias' => 'user',
-                'type' => 'INNER',
-                'conditions' => "user.id = account.user_id AND user.email='".$myemail."'"
-            ]);
-            $accountTable->first();
-
-            $accountTable->password = '';
-            // $accountTable->token = $mytoken;
-
-            $this->Account->save($accountTable);
-            $this->set(compact('accountTable'));
-            return;
-
-
-        if($accountTable->save($account))  {
-            $res['status'] = 1;
-            $res['msg'] = 'Reset password link has been to your email('.$myemail.'), please open your indox';
-
-            Email::configTransport('mailtrap', [
-                'host' => 'smtp.mailtrap.io',
-                'port' => 2525,
-                'username' => '507e5493f6ad0c',
-                'password' => '855f891440d4c8',
-                'className' => 'Smtp'
-            ]);
-
-            $email = new Email('default');
-            $email -> transport('mailtrap');
-            $email -> emailFormat('html');
-            $email -> from('unyamka@gmail.com', 'U.N');
-            $email -> subject('Please confirm your email to activation your account');
-            $email -> to($myemail);
-            $email -> send(
-                'Hello '.$myemail.'<br/>Please click link below to reset your password<br/>
-                <a href="http://localhost:3000/resetpassword?mt='.$mytoken.'">Reset Password</a><br/>'
-            );
+                $email = new Email('default');
+                $email -> transport('mailtrap');
+                $email -> emailFormat('html');
+                $email -> from('unyamka@gmail.com', 'U.N');
+                $email -> subject('Please confirm your email to activation your account');
+                $email -> to($myemail);
+                $email -> send(
+                    'Hello '.$myemail.'<br/>Please click link below to reset your password<br/>
+                    <a href="http://localhost:3000/resetpassword?mt='.$mytoken.'">Reset Password</a><br/>'
+                );
+            }
+            else {
+                $res['status'] = 0;
+                $res['msg'] = '('.$myemail.') ない';
+            }
         }
-        else {
-            $res['status'] = 0;
-            $res['msg'] = '('.$myemail.') ない';
+
+        $this->set(compact('res'));
+        $this->set('_serialize', ['res']);
+    }
+
+    public function resetpassword()  {
+        $res = array();
+        if($this->request->is('post'))  {
+            $hasher = new DefaultPasswordHasher();
+            $mypass = $hasher->hash($this->request->getData('password'));
+            $token = $this->request->getData('token');
+
+            $userTable = TableRegistry::get('Account');
+            $user = $userTable->find('all')->where(['token'=>$token])->first();
+            $user->password =$mypass;
+            if($userTable->save($user))  {
+                $res['status'] = 1;
+            }
         }
 
         $this->set(compact('res'));
