@@ -2,7 +2,6 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
-
 use Cake\Mailer\Email;
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\Utility\Security;
@@ -10,21 +9,8 @@ use Cake\ORM\TableRegistry;
 use Illuminate\Http\Request;
 use Cake\Network\Exception\UnauthorizedException;
 
-/**
- * Users Controller
- *
- * @property \App\Model\Table\UsersTable $Users
- */
-
-
-
 class UsersController extends AppController  {
 
-    /**
-     * Index method
-     *
-     * @return \Cake\Network\Response|null
-     */
     public function index()  {
         // $data = $this->paginate($this->Users);
         // $this->set(compact('data'));
@@ -142,15 +128,17 @@ class UsersController extends AppController  {
     public function register()  {
         $res = array();
         if($this->request->is('post'))  {
-            $companyname = $this -> request -> getData(['companyname']);
-            $guarantorname = $this -> request -> getData(['guarantorname']);
-            $postcode = $this -> request -> getData(['postcode']);
-            $address1 = $this -> request -> getData(['address1']);
-            $address2 = $this -> request -> getData(['address2']);
-            $address3 = $this -> request -> getData(['address3']);
-            $guarantorphonenumber = $this -> request -> getData(['guarantorphonenumber']);
-            $cellphone = $this -> request -> getData(['cellphone']);
-            $myemail = trim($this -> request -> getData(['email']));
+            $res = array();
+            $jsonData = $this->request->input('json_decode');
+            $companyname = $jsonData->companyName;
+            $guarantorname = $jsonData->guarantorName;
+            $postcode = $jsonData->postCode;
+            $address1 = $jsonData->address1;
+            $address2 = $jsonData->address2;
+            $address3 = $jsonData->address3;
+            $guarantorphonenumber = $jsonData->guarantorPhoneNumber;
+            $cellphone = $jsonData->cellPhone;
+            $myemail = $jsonData->email;
 
             $companyTable = tableRegistry::get('company');
             $company = $companyTable -> newEntity();
@@ -163,20 +151,16 @@ class UsersController extends AppController  {
             $company->guarantorphonenumber = $guarantorphonenumber;
             $company->cellphone = $cellphone;
             $company->email = $myemail;
-
+            $company->created = date('Y-m-d H:i:s');
             $result = $companyTable->save($company);
-            $comId = $result->id;
 
-            if($comId > 0)  {  //compnay register successful
-
-            }
-            else  {
+            if(!$result)  {  //compnay register successful
                 $res['status'] = 0;
                 $res['msg'] = 'Company register failed, please try again.';
                 $this->set(compact('res'));
-                $this->set('_serialize', ['res']);
-                exit();
+                return;
             }
+            $comId = (int) $company['id'];  //登録した会社IDです。
 
             //** ----------------- User start---------- */
 
@@ -194,6 +178,8 @@ class UsersController extends AppController  {
             $user->password = $hasher->hash($mypass);
             $user->token = $mytoken;
             $user->phone = $cellphone;
+            $user->level = "admin";
+            $user->created = time();
 
             if($userTable->save($user))  { 
                 $res['status'] = 1;
@@ -215,7 +201,7 @@ class UsersController extends AppController  {
                 $email -> to($myemail);
                 $email -> send(
                     'comId:'.$comId.' ------ '.$guarantorname.'<br/>Please confirm your email link below<br/>
-                    <a href="http://localhost/backEnd/users/verification/'.$mytoken.'">Verification Email</a><br/>
+                    <a href="http://localhost:8765/users/verification/'.$mytoken.'">Verification Email</a><br/>
                     Thank you for joining us'
                 );
             }
@@ -255,46 +241,43 @@ class UsersController extends AppController  {
         ]);
     }
 
-    /**
-     * Add method
-     *
-     * @return \Cake\Network\Response|void Redirects on successful add, renders view otherwise.
-     */
     public function add()  {
-        $username = $this -> request -> getData(['username']);
-        $email = $this -> request -> getData(['email']);
-        $name = $this -> request -> getData(['name']);
-        $phone = $this -> request -> getData(['phone']);
+        $username = $this->request->getData(['username']);
+        $email = $this->request->getData(['email']);
+        $name = $this->request->getData(['name']);
+        $phone = $this->request->getData(['phone']);
+        $comId = $this->request->getData(['comId']);
+        $authorId = $this->request->getData(['authorId']);
 
         $userTable = tableRegistry::get('Users');
         $user = $userTable -> newEntity();
 
+        $hasher = new DefaultPasswordHasher();
+        $mypass = '1200'; //password hiine
+        $mytoken = Security::hash(Security::randomBytes(32));
+
+        $res = array();
         $user->email = $email;
         $user->name = $name;
         $user->username = $username;  // turzuur email hayagaar ni hiiw mail hayag ni dawhar orj bgaa
         $user->phone = $phone;
+        $user->password = $hasher->hash($mypass);
+        $user->token = $mytoken;
+        $user->company_id = $comId;
+        $user->author_id = $authorId;
 
         if($userTable->save($user))  {
-            $message = 'Saved';
-        } 
+            $res['status'] = 1;
+            $res['msg'] = 'User register successful, your confirmation email has been sent.';
+        }
         else  {
-            $message = 'Error';
+            $res['status'] = 0;
+            $res['msg'] = 'User register failed, please try again.';
         }
 
-        $this->set([
-            'message' => $message,
-            'data' => $user,
-            '_serialize' => ['message', 'data']
-        ]);
+        $this->set(compact('res'));
     }
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Network\Response|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
     public function edit($id = null)  {
         $usersTable = TableRegistry::get('Users');
         $user = $usersTable->get($id);
@@ -304,25 +287,17 @@ class UsersController extends AppController  {
         $user->email = $this->request->getData(["email"]);
 
         if ($this->Users->save($user))  {
-            $message = 'Edited';
+            $res['status'] = 1;
+            $res['msg'] = 'User edit successful';
         }
         else  {
-            $message = 'Error';
+            $res['status'] = 0;
+            $res['msg'] = 'User edit failed, please try again.';
         }
 
-        $this->set([
-            'messagedd' => $message,
-            '_serialize' => ['message']
-        ]);
+        $this->set(compact('res'));
     }
 
-    /**
-     * Delete method
-     *
-     * @param string|null $id User id.
-     * @return \Cake\Network\Response|null Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
-     */
     public function delete($id = null)  {
         $this->request->allowMethod(['delete']);
         $user = $this->Users->get($id);

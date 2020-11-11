@@ -65,7 +65,6 @@ class AppController extends Controller
         //$this->loadComponent('Security');
     }
 
-
     public function beforeFilter(event $event) {
         $this->Auth->allow([
             'verification', 
