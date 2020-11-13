@@ -44,17 +44,13 @@ class AppController extends Controller
             'enableBeforeRedirect' => false,
         ]);
         $this->loadComponent('Flash');
-        
+
         $this->loadComponent('Auth',  [
-            'loginAction' => [
-                'controller' => 'Account',
-                'action' => 'login'
-            ],
             'authenticate' => [
                 'Form'=> [
                     'fields' => ['username'=>'username', 'password'=>'password'],
                     'scope' => ['verified'=>'1'],
-                    'userModel' => 'Account'
+                    'userModel' => 'Users'
                 ]
             ],
             'storage'=>'Session'
