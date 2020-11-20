@@ -127,7 +127,7 @@ class UsersController extends AppController  {
             $cellphone = $jsonData->cellPhone;
             $myemail = $jsonData->email;
 
-            $companyTable = tableRegistry::get('company');
+            $companyTable = tableRegistry::get('Account');
             $company = $companyTable -> newEntity();
             $company->companyname = $companyname;
             $company->guarantorname = $guarantorname;
@@ -138,7 +138,7 @@ class UsersController extends AppController  {
             $company->guarantorphonenumber = $guarantorphonenumber;
             $company->cellphone = $cellphone;
             $company->email = $myemail;
-            $company->created = date('Y-m-d H:i:s');
+            $company->createDate = date('Y-m-d H:i:s');
             $result = $companyTable->save($company);
 
             if(!$result)  {  //compnay register successful
@@ -188,7 +188,7 @@ class UsersController extends AppController  {
                 $email -> to($myemail);
                 $email -> send(
                     'comId:'.$comId.' ------ '.$guarantorname.'<br/>Please confirm your email link below<br/>
-                    <a href="http://localhost:8765/users/verification/'.$mytoken.'">Verification Email</a><br/>
+                    <a href="http://localhost/backEnd/users/verification/'.$mytoken.'">Verification Email</a><br/>
                     Thank you for joining us'
                 );
             }
@@ -271,7 +271,7 @@ class UsersController extends AppController  {
         $user->username = $this->request->getData(["username"]);
         $user->phone = $this->request->getData(["phone"]);
         $user->email = $this->request->getData(["email"]);
-        $user->modified = date('Y-m-d H:i:s');
+        $user->updateDate = date('Y-m-d H:i:s');
 
         if ($this->Users->save($user))  {
             $res['status'] = 1;

@@ -28,8 +28,9 @@ class User extends Entity
         'username' => true,
         'password' => true,
         'email' => true,
-        'created' => true,
-        'modified' => true,
+        'createDate' => true,
+        'updateDate' => true,
+        'deleteDate' => true
     ];
 
     /**
